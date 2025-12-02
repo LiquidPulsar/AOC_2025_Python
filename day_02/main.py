@@ -12,6 +12,7 @@ import re
 pat1 = re.compile(r"(\d+)\1")
 pat2 = re.compile(r"(\d+)\1+")
 
+
 def num_dupes_to_naive(n: int, start=1, part_2=False):
     pat = pat2 if part_2 else pat1
     return sum(filter(lambda x: pat.fullmatch(str(x)), range(start, n + 1)))
@@ -19,6 +20,7 @@ def num_dupes_to_naive(n: int, start=1, part_2=False):
 
 # sum of 11*x for x in range(1,10)
 # sum of 101*x for x in range(10,100)
+
 
 def fast_sum_range(a, b):
     return (a + b - 1) * (b - a) // 2
@@ -31,11 +33,7 @@ def sum_of_section(l2: int, end: int) -> int:
 
 @lru_cache
 def total_section_to(l2: int) -> int:
-    return (
-        sum_of_section(l2,10**l2) + total_section_to(l2 - 1)
-        if l2 >= 1
-        else 0
-    )
+    return sum_of_section(l2, 10**l2) + total_section_to(l2 - 1) if l2 >= 1 else 0
 
 
 def better_num_dupes(n: int):
@@ -43,15 +41,13 @@ def better_num_dupes(n: int):
         return 0
     s = str(n)
     length = len(s)
-    if length % 2 == 1:
+    if length % 2:
         return better_num_dupes(10 ** (length - 1) - 1)
 
     l_half = length // 2
-    l, r = map(int, (s[:l_half], s[l_half:]))
+    l, r = int(s[:l_half]), int(s[l_half:])
 
-    return total_section_to(l_half - 1) + sum_of_section(
-        l_half, l - (l > r) + 1
-    )
+    return total_section_to(l_half - 1) + sum_of_section(l_half, l - (l > r) + 1)
 
 
 # print(sum_of_section(4, 10, 100) + sum_of_section(2, 1, 10))
@@ -90,72 +86,79 @@ from time import perf_counter_ns
 
 ###################################
 
+
 # 3 -> 111, 10101
-@lru_cache
-def build_pattern(rep: int, l2: int) -> int:
+def _build_pattern(rep: int, l2: int) -> int:
     res = 0
     for _ in range(rep):
-        res = res * (10 ** l2) + 1
+        res = res * (10**l2) + 1
     return res
 
+
+build_pattern: list[list[int]] = [
+    [_build_pattern(rep, l2) for l2 in range(10)] for rep in range(11)
+]  # rep -> l2 -> value
+
+
 def sum_of_section_general(rep: int, l2: int, end: int) -> int:
-    return fast_sum_range(10 ** (l2 - 1), end) * build_pattern(rep, l2)
+    return fast_sum_range(10 ** (l2 - 1), end) * build_pattern[rep][l2]
+
 
 @lru_cache
-def total_section_to_general(rep: int, l2: int) -> int:
+def _total_section_to_general(rep: int, l2: int) -> int:
     return (
-        sum_of_section_general(rep, l2, 10**l2) + total_section_to_general(rep, l2 - 1)
+        sum_of_section_general(rep, l2, 10**l2) + _total_section_to_general(rep, l2 - 1)
         if l2 >= 1
         else 0
     )
+
+
+total_section_to_general: list[list[int]] = [
+    [_total_section_to_general(rep, l2) for l2 in range(10)] for rep in range(11)
+]  # rep -> l2 -> total
+
+divmod_table: list[list[tuple[int, int]]] = [
+    [rep and divmod(i, rep) for i in range(11)] for rep in range(11)  # type: ignore
+]
+
 
 def better_num_dupes_general(n: int, rep: int):
     if n == 0:
         return 0
     s = str(n)
     length = len(s)
-    if length < rep: return 0
+    if length < rep:
+        return 0
 
-    l_part, rem = divmod(length, rep)
+    l_part, rem = divmod_table[length][rep]
     if rem:
-        return total_section_to_general(rep, l_part)
+        return total_section_to_general[rep][l_part]
 
     l = int(s[:l_part])
     # e.g. 581 or 554 with rep=3
     # need x>=555
-    pat = build_pattern(rep, l_part) * l
+    pat = build_pattern[rep][l_part] * l
 
-    return total_section_to_general(rep, l_part - 1) + sum_of_section_general(
+    return total_section_to_general[rep][l_part - 1] + sum_of_section_general(
         rep, l_part, l + (pat <= n)
     )
 
+
 def better_num_dupes_general_wrapper(n: int):
-    return sum(better_num_dupes_general(n, rep) for rep in [2,3,5,7]) - sum(better_num_dupes_general(n, rep) for rep in [6,10])
+    return (
+        better_num_dupes_general(n, 2)
+        + better_num_dupes_general(n, 3)
+        + better_num_dupes_general(n, 5)
+        + better_num_dupes_general(n, 7)
+        - better_num_dupes_general(n, 6)
+        - better_num_dupes_general(n, 10)
+    )
 
-# n = 581
-# print(num_dupes_to_naive(n,part_2=True))
-# print(*(better_num_dupes_general(n, x) for x in [2,3,5,6,7,10,15]))
-# print(better_num_dupes_general_wrapper(n))
 
-# print(sum(11*n for n in range(1,10))+sum(111*n for n in range(1,6)))
-# exit()
-
-# # for n in [0,9,10,11,22,99,100,101,110,111,121,200,212,999,1000,9999,10000,12321,1234321,12344321]:
-# # # for n in [99]:
-# #     naive = num_dupes_to_naive(n,part_2=True)
-# #     better = better_num_dupes_general_wrapper(n)
-# #     assert naive == better, f"Mismatch for {n}: {naive} != {better}"
-# #     print(f"{n}: {naive}")
-
-# # print(max(len(str(b)) for a,b in parts)) # 10 digits max
-
-# for a,b in parts:
-#     r1 = num_dupes_to_naive(b, a, part_2=True)
-#     r2 = better_num_dupes_general_wrapper(b) - better_num_dupes_general_wrapper(a - 1)
-#     if r1 != r2:
-#         print(f"Mismatch for {a}-{b}: {r1} != {r2}")
-#     else:
-#         print(f"{a}-{b}: {r1}")
+def run_pair(p):
+    return better_num_dupes_general_wrapper(p[1]) - better_num_dupes_general_wrapper(
+        p[0] - 1
+    )
 
 
 from time import perf_counter_ns
@@ -167,14 +170,39 @@ from time import perf_counter_ns
 # r2=sum(map(lambda p: better_num_dupes_general_wrapper(p[1]) - better_num_dupes_general_wrapper(p[0] - 1), parts))
 # assert r1 == r2
 
+# naive_times = []
+# better_times = []
+# for l,r in parts:
+#     tot = 0
+#     for _ in range(100):
+#         start = perf_counter_ns()
+#         num_dupes_to_naive(r, l, part_2=True)
+#         end = perf_counter_ns()
+#         tot += end - start
+#     naive_times.append(tot / 100)
+
+#     tot = 0
+#     for _ in range(100):
+#         start = perf_counter_ns()
+#         better_num_dupes_general_wrapper(r) - better_num_dupes_general_wrapper(l - 1)
+#         end = perf_counter_ns()
+#         tot += end - start
+#     better_times.append(tot / 100)
+
+# print("Naive times (micros):", [t/1000 for t in naive_times])
+# print("Better times (micros):", [t/1000 for t in better_times])
+# exit()
+
 tot = 0
 N_RUNS = 10000
 for i in range(N_RUNS):
     start = perf_counter_ns()
-    build_pattern.cache_clear()
-    total_section_to_general.cache_clear()
-
-    r2=sum(map(lambda p: better_num_dupes_general_wrapper(p[1]) - better_num_dupes_general_wrapper(p[0] - 1), parts))
+    r2 = sum(
+        map(
+            run_pair,
+            parts,
+        )
+    )
     end = perf_counter_ns()
     tot += end - start
 print(f"Better took {tot/N_RUNS/1000} micros")
