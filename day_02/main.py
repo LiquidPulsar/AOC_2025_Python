@@ -1,4 +1,5 @@
 from functools import lru_cache
+from math import ceil, log10
 from pathlib import Path
 
 HOME = Path(__file__).parent
@@ -86,6 +87,7 @@ from time import perf_counter_ns
 
 ###################################
 
+POW10 = [10**i for i in range(11)]
 
 # 3 -> 111, 10101
 def _build_pattern(rep: int, l2: int) -> int:
@@ -101,17 +103,16 @@ build_pattern: list[list[int]] = [
 
 
 def sum_of_section_general(rep: int, l2: int, end: int) -> int:
-    return fast_sum_range(10 ** (l2 - 1), end) * build_pattern[rep][l2]
+    return fast_sum_range(POW10[l2 - 1], end) * build_pattern[rep][l2]
 
 
 @lru_cache
 def _total_section_to_general(rep: int, l2: int) -> int:
     return (
-        sum_of_section_general(rep, l2, 10**l2) + _total_section_to_general(rep, l2 - 1)
+        sum_of_section_general(rep, l2, POW10[l2]) + _total_section_to_general(rep, l2 - 1)
         if l2 >= 1
         else 0
     )
-
 
 total_section_to_general: list[list[int]] = [
     [_total_section_to_general(rep, l2) for l2 in range(10)] for rep in range(11)
@@ -121,12 +122,11 @@ divmod_table: list[list[tuple[int, int]]] = [
     [rep and divmod(i, rep) for i in range(11)] for rep in range(11)  # type: ignore
 ]
 
-
 def better_num_dupes_general(n: int, rep: int):
     if n == 0:
         return 0
-    s = str(n)
-    length = len(s)
+    
+    length = ceil(log10(n + 1))
     if length < rep:
         return 0
 
@@ -134,7 +134,8 @@ def better_num_dupes_general(n: int, rep: int):
     if rem:
         return total_section_to_general[rep][l_part]
 
-    l = int(s[:l_part])
+    l = n // POW10[length - l_part]
+
     # e.g. 581 or 554 with rep=3
     # need x>=555
     pat = build_pattern[rep][l_part] * l
@@ -168,7 +169,7 @@ from time import perf_counter_ns
 # end = perf_counter_ns()
 # print(f"Naive took {(end-start)/1_000_000} ms")
 # r2=sum(map(lambda p: better_num_dupes_general_wrapper(p[1]) - better_num_dupes_general_wrapper(p[0] - 1), parts))
-# assert r1 == r2, f"Mismatch: {r1} != {r2}"
+# assert r1 == r2
 
 # naive_times = []
 # better_times = []
