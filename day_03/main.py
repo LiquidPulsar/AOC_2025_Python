@@ -20,26 +20,30 @@ def best_combo(line: list[int]) -> int:
     
     stack = [0]*12
     p = 0
-
+    last = -1
     for i in range(start, ll - 12):
         n = line[i]
-        if p and stack[p-1] < n:
+        if p and last < n:
             p -= 1
             while p and stack[p-1] < n:
                 p -= 1
-            stack[p] = n
+            stack[p] = last = n
             p += 1
         elif p < 12:
-            stack[p] = n
+            stack[p] = last = n
             p += 1
 
     l = 0
     for i in range(ll - 12, ll):
         n = line[i]
-        while p > l and stack[p-1] < n:
+        if p and last < n:
             p -= 1
-        if p < 12:
-            stack[p] = n
+            while p > l and stack[p-1] < n:
+                p -= 1
+            stack[p] = last = n
+            p += 1
+        elif p < 12:
+            stack[p] = last = n
             p += 1
         l += 1
     return combine(stack)
@@ -48,7 +52,7 @@ data = [list(map(int,line.strip())) for line in (HOME/"input.txt").open()]
 
 from time import perf_counter_ns
 
-N_RUNS = 2000
+N_RUNS = 4000
 total = 0
 res = None
 for _ in range(N_RUNS):
