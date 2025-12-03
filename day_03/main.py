@@ -8,13 +8,31 @@ def combine(xs: list[int]) -> int:
         res = res * 10 + x
     return res
 
+ints = tuple(range(9, -1, -1))
 def best_combo(line: list[int]) -> int:
+    ll = len(line)
+    lim:int = ll - 11
+    for c in ints:
+        try:
+            start = line.index(c, 0, lim)
+            break
+        except: pass
+    
     stack = [0]*12
-    l = 12 - len(line)
     p = 0
     
-    for n in line:
-        while p and stack[p-1] < n and p > l:
+    for i in range(start, ll - 12):
+        n = line[i]
+        while p and stack[p-1] < n:
+            p -= 1
+        if p < 12:
+            stack[p] = n
+            p += 1
+
+    l = 0
+    for i in range(ll - 12, ll):
+        n = line[i]
+        while p > l and stack[p-1] < n:
             p -= 1
         if p < 12:
             stack[p] = n
