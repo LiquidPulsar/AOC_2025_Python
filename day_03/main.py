@@ -9,17 +9,17 @@ def combine(xs: list[int]) -> int:
     return res
 
 def best_combo(line: list[int]) -> int:
-    stack = []
+    stack = [0]*12
     l = len(line)
+    p = 0
     
     for i,n in enumerate(line):
-        while stack and stack[-1] < n and (l - i) > (12 - len(stack)):
-            stack.pop()
-
-        if len(stack) < 12:
-            stack.append(n)
+        while p and stack[p-1] < n and (l - i) > (12 - p):
+            p -= 1
+        if p < 12:
+            stack[p] = n
+            p += 1
     return combine(stack)
-
 
 data = [list(map(int,line.strip())) for line in (HOME/"input.txt").open()]
 
