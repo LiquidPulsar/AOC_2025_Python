@@ -130,7 +130,7 @@ def better_num_dupes_general(n: int, rep: int):
     if length < rep:
         return 0
 
-    l_part, rem = divmod_table[length][rep]
+    l_part, rem = divmod_table[rep][length]
     if rem:
         return total_section_to_general[rep][l_part]
 
@@ -168,7 +168,7 @@ from time import perf_counter_ns
 # end = perf_counter_ns()
 # print(f"Naive took {(end-start)/1_000_000} ms")
 # r2=sum(map(lambda p: better_num_dupes_general_wrapper(p[1]) - better_num_dupes_general_wrapper(p[0] - 1), parts))
-# assert r1 == r2
+# assert r1 == r2, f"Mismatch: {r1} != {r2}"
 
 # naive_times = []
 # better_times = []
