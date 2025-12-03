@@ -2,8 +2,6 @@ from pathlib import Path
 
 HOME = Path(__file__).parent
 
-from functools import lru_cache
-
 def combine(xs: list[int]) -> int:
     res = 0
     for x in xs:
@@ -11,23 +9,23 @@ def combine(xs: list[int]) -> int:
     return res
 
 def best_combo(line: list[int]) -> int:
-    # Do it backwards
-    curr = [0]*13
+    stack = []
+    l = len(line)
+    
+    for i,n in enumerate(line):
+        while stack and stack[-1] < n and (l - i) > (12 - len(stack)):
+            stack.pop()
 
-    for n in line:
-        for rem in range(12,0,-1):
-            curr[rem] = max(
-                curr[rem-1] * 10 + n,
-                curr[rem]
-            )
-    return curr[12]
+        if len(stack) < 12:
+            stack.append(n)
+    return combine(stack)
 
 
 data = [list(map(int,line.strip())) for line in (HOME/"input.txt").open()]
 
 from time import perf_counter_ns
 
-N_RUNS = 100
+N_RUNS = 2000
 total = 0
 res = None
 for _ in range(N_RUNS):
