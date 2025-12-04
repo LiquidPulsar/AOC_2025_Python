@@ -20,7 +20,7 @@ def best_combo(line: list[int]) -> int:
     
     stack = [0]*12
     p = 0
-    last = -1
+    last = 0
     for i in range(start, ll - 12):
         n = line[i]
         if p and last < n:
@@ -36,7 +36,7 @@ def best_combo(line: list[int]) -> int:
     l = 0
     for i in range(ll - 12, ll):
         n = line[i]
-        if p and last < n:
+        if p > l and last < n:
             p -= 1
             while p > l and stack[p-1] < n:
                 p -= 1
