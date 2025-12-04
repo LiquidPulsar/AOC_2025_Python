@@ -23,16 +23,17 @@ data = (HOME/"input.txt").read_text().splitlines()
 import numpy as np
 from scipy.ndimage import convolve
 
-kernel = np.array([[1,1,1],[1,0,1],[1,1,1]])
-grid = np.array([[1 if ch=='@' else 0 for ch in line] for line in data])
+# 9 center weight means that the center must be filled for us to beat 13 threshold (9 center + 4 neighbors)
+kernel = np.array([[1,1,1],[1,9,1],[1,1,1]])
+grid = np.array([[1 if ch=='@' else 0 for ch in line] for line in data], dtype=np.int8) # test dtype speed
 first_n = grid.sum()
-grid *= np.where(convolve(grid, kernel, mode='constant', cval=0) >= 4, 1, 0)
+grid = np.where(convolve(grid, kernel, mode='constant', cval=0) >= 13, 1, 0)
 curr = grid.sum()
 print(first_n - curr)
 old_n = first_n
 while curr != old_n:
     old_n = curr
-    grid *= np.where(convolve(grid, kernel, mode='constant', cval=0) >= 4, 1, 0)
+    grid = np.where(convolve(grid, kernel, mode='constant', cval=0) >= 13, 1, 0)
     # print(grid)
     curr = grid.sum()
 print(first_n - curr)
