@@ -1,4 +1,3 @@
-from collections import defaultdict
 from pathlib import Path
 
 HOME = Path(__file__).parent
@@ -19,26 +18,47 @@ data = (HOME/"input.txt").read_text().splitlines()
 
 from time import perf_counter_ns
 
+"""
+Visible horizon:
+...S...
+..SSS..
+.SSSSS.
+
+let s0 be initial index S in line 0
+line 1: width 3, s0-1 to s0+1
+line 2: width 5, s0-2 to s0+2
+...
+line n: width 2n+1, s0-n to s0+n
+"""
+
 def solve(data):
-    curr = {data[0].index("S"):1}
+    s = data[0].index("S")
+    width = 1
+    curr = [1]
     splits = 0
     timelines = 1
 
-    for line in data[2::2]:
-        new_curr = defaultdict(int)
-        for pos,v in curr.items():
+    for line in data[2::2]: # half the lines are empty!
+        width += 2
+        s -= 1
+        new_curr = [0]*width
+        for pos,v in enumerate(curr, start=s+1): # true index in prev row
+            if v == 0:
+                continue
+            # print(line,pos,v)
             if line[pos] == "^":
-                new_curr[pos-1] += v
-                new_curr[pos+1] += v
+                new_curr[pos-1-s] += v
+                new_curr[pos+1-s] += v
                 splits += 1
                 # we had v timelines to start with, now each split into 2 so +v
                 timelines += v
             else:
-                new_curr[pos] += v
+                new_curr[pos-s] += v
         curr = new_curr
     return splits, timelines
 
 print(*solve(data))
+# exit()
 
 N_RUNS = 1000
 total = 0
