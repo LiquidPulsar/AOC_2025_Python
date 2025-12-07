@@ -31,6 +31,10 @@ line 2: width 5, s0-2 to s0+2
 line n: width 2n+1, s0-n to s0+n
 """
 
+# TODO: investigate whether can use half the indices as alternating even/odd
+# investigate if can get away with storing one/2 lists rather than allocating new each time
+# this would also simplify offset logic too
+# one reusable list can work if we have a variable to store the prev overwritten entry
 def solve(data):
     s = data[0].index("S")
     width = 1
