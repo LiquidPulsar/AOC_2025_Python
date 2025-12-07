@@ -24,7 +24,7 @@ def solve(data):
     splits = 0
     timelines = 1
 
-    for line in data[1:]:
+    for line in data[2::2]:
         new_curr = defaultdict(int)
         for pos,v in curr.items():
             if line[pos] == "^":
