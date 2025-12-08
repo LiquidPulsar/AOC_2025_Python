@@ -11,6 +11,7 @@ HOME = Path(__file__).parent
 with open(HOME / "input.txt") as f:
     points: list[tuple[int, int, int]] = [*map(eval, f)]
 
+# TODO: Investigate computing a 2D range of distances and using num_workers arg on KDTree query
 N = 18 # Prefetch distance
 def shortest_dists(pos):
     # Returns generator of (distance, i, j) in order of increasing distance
@@ -20,7 +21,7 @@ def shortest_dists(pos):
 
     # For a given point, generate its nearest neighbours in order
     def gen_ns(i, p):
-        for k in count(2):
+        for k in count(2,N):
             ds, inds = tree.query(p, k=[*range(k, k+N)])  # type: ignore (scipy stubs bad)
             for j in range(N):
                 yield ds[j], i, int(inds[j])  # type: ignore
@@ -48,8 +49,7 @@ def shortest_dists(pos):
 #         consumer.extend(islice(shortest_dists(points), 4603)) # By inspection, we need 4602 edges for my input
 #         end = perf_counter_ns()
 #         total += end - start
-#     print(f"Solution {N} took {total/N_RUNS/1_000_000} ms)
-
+#     print(f"Solution {N} took {total/N_RUNS/1_000_000} ms")
 
 def solve(points: list[tuple[int, int, int]]) -> tuple[int, int]:
     sets = DisjointSet(range(len(points)))
@@ -74,4 +74,4 @@ for _ in range(N_RUNS):
     res = solve(points)
     end = perf_counter_ns()
     total += end - start
-print(f"Solution {N} took {total/N_RUNS/1_000_000} ms, result {res}")
+print(f"Solution took {total/N_RUNS/1_000_000} ms, result {res}")
