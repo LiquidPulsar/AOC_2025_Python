@@ -3,5 +3,9 @@ name = "aoc-2025-python"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.9"
-dependencies = []
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=2.3.5",
+    "scipy>=1.16.3",
+    "tqdm>=4.67.1",
+]
