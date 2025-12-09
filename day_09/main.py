@@ -88,16 +88,25 @@ and use a flood-fill style approach to knowing if we're in the polygon or not.
 # plt.axis('equal')
 # plt.show()
 
-from shapely.geometry import Polygon
+from shapely import prepare, Polygon
 from math import comb
+from time import perf_counter_ns
 
 def tcombinations(iterable, r):
     return tqdm(combinations(iterable, r), total=comb(len(iterable), r))
 
-polygon = Polygon(positions)
-best_area = max(
-    area(p1, p2)
-    for p1, p2 in tcombinations(positions, 2)
-    if polygon.covers(Polygon([p1, (p1[0],p2[1]), p2, (p2[0],p1[1])]))
-)
+N_RUNS = 1
+total = 0
+for _ in range(N_RUNS):
+    start = perf_counter_ns()
+    polygon = Polygon(positions)
+    prepare(polygon)
+    best_area = max(
+        area(p1, p2)
+        for p1, p2 in combinations(positions, 2)
+        if polygon.covers(Polygon([p1, (p1[0],p2[1]), p2, (p2[0],p1[1])]))
+    )
+    end = perf_counter_ns()
+    total += end - start
 print(best_area)
+print(f"Solution took {total/N_RUNS/1_000_000} ms")
