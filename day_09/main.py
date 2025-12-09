@@ -71,6 +71,9 @@ Whenever this is shrunk (either up or down for TL, BL respectively), we can test
 
 Ill-behaved polygons which go back on themselves may cause issues with this approach though,
 so a more general approach will be needed.
+
+Also note: Low number of unique x and y values, so can compress coordinates
+and use a flood-fill style approach to knowing if we're in the polygon or not.
 """
 # import matplotlib.pyplot as plt
 # xs, ys = zip(*(positions + [positions[0]]))
