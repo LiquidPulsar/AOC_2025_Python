@@ -17,24 +17,19 @@ def solve(data: list[tuple[str, list[tuple[int,...]], list[int]]]) -> int:
     tot = 0
     for diag, buttons, _ in data:
         l = len(diag)
-        @cache
-        def solve(tgt: int, free: frozenset[int]) -> int:
-            if not tgt:
-                return 0
-            if not free:
-                return 9999
-            # check efficiency. maybe store the || of free as well?
-            # Lets us check easily things like: cannot reach tgt as bits missing that cannot be set
-            if tgt in free:
-                return 1
-            return 1 + min(
-                solve(tgt ^ b, free - {b})
-                for b in free
-            )
-        
+        dp = [[False]*(1<<l) for _ in range(len(buttons)+1)]
+        dp[0][0] = True
         tgt = int(diag.translate(pat), 2)
-        buttons = frozenset(sum((1 << (l - 1 - i)) for i in b) for b in buttons)
-        tot += solve(tgt,  buttons)
+        buttons = [sum((1 << (l - 1 - i)) for i in b) for b in buttons]
+        for n in range(1, len(buttons)+1):
+            for i in range(1<<l):
+                dp[n][i] = any(
+                    dp[n-1][i ^ b]
+                    for b in buttons
+                )
+            if dp[n][tgt]:
+                tot += n
+                break
     return tot
 
 from time import perf_counter_ns
