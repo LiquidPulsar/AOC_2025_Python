@@ -22,10 +22,10 @@ def solve(data: list[tuple[str, list[tuple[int,...]], list[int]]]) -> int:
         tgt = int(diag.translate(pat)[::-1], 2) # Flip for LSB order, lets us use 1 << i later rather than 1 << (l - 1 - i)
         buttons = [sum([(1 << i) for i in b]) for b in buttons] # use list comp, genexp is slower
         curr = {0}
-        for i in count(): # BFS over number of presses. Upper bound is len(buttons)
+        for i in count(1): # BFS over number of presses. Upper bound is len(buttons)
             curr = set(starmap(xor, product(curr, buttons)))
             if tgt in curr:
-                tot += i + 1
+                tot += i
                 break
     return tot
 
