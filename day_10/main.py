@@ -1,4 +1,7 @@
 from functools import cache
+from itertools import combinations, count, product, starmap
+from math import log
+from operator import xor
 from pathlib import Path
 
 from tqdm import tqdm
@@ -16,25 +19,19 @@ pat = str.maketrans('#.', '10')
 def solve(data: list[tuple[str, list[tuple[int,...]], list[int]]]) -> int:
     tot = 0
     for diag, buttons, _ in data:
-        l = len(diag)
-        dp = [[False]*(1<<l) for _ in range(len(buttons)+1)]
-        dp[0][0] = True
-        tgt = int(diag.translate(pat), 2)
-        buttons = [sum((1 << (l - 1 - i)) for i in b) for b in buttons]
-        for n in range(1, len(buttons)+1):
-            for i in range(1<<l):
-                dp[n][i] = any(
-                    dp[n-1][i ^ b]
-                    for b in buttons
-                )
-            if dp[n][tgt]:
-                tot += n
+        tgt = int(diag.translate(pat)[::-1], 2) # Flip for LSB order, lets us use 1 << i later rather than 1 << (l - 1 - i)
+        buttons = [sum([(1 << i) for i in b]) for b in buttons] # use list comp, genexp is slower
+        curr = {0}
+        for i in count(): # BFS over number of presses. Upper bound is len(buttons)
+            curr = set(starmap(xor, product(curr, buttons)))
+            if tgt in curr:
+                tot += i + 1
                 break
     return tot
 
 from time import perf_counter_ns
 
-N_RUNS = 10
+N_RUNS = 1000
 total = 0
 res = None
 for _ in range(N_RUNS):
@@ -44,33 +41,33 @@ for _ in range(N_RUNS):
     total += end - start
 print(f"Solution took {total/N_RUNS/1_000_000} ms, result {res}")
 
-import numpy as np
-from scipy.optimize import linprog
+# import numpy as np
+# from scipy.optimize import linprog
 
-def solve_2(data: list[tuple[str, list[tuple[int,...]], list[int]]]) -> int:
-    tot = 0
-    for _, buttons, joltage in tqdm(data):
-        l = len(joltage)
-        tgt = np.array(joltage, dtype=np.uint32)
-        btns = np.array([[i in button for i in range(l)] for button in buttons], dtype=np.uint32)
-        # tgt = btns @ x
-        res = linprog( # milp would be better
-            np.ones(len(buttons)),
-            A_eq=btns.T,
-            b_eq=tgt,
-            bounds=(0, None),
-            method='highs',
-            integrality=np.ones(len(buttons), dtype=np.int8)
-        ).fun
-        tot += res
-    return tot
+# def solve_2(data: list[tuple[str, list[tuple[int,...]], list[int]]]) -> int:
+#     tot = 0
+#     for _, buttons, joltage in tqdm(data):
+#         l = len(joltage)
+#         tgt = np.array(joltage, dtype=np.uint32)
+#         btns = np.array([[i in button for i in range(l)] for button in buttons], dtype=np.uint32)
+#         # tgt = btns @ x
+#         res = linprog( # milp would be better
+#             np.ones(len(buttons)),
+#             A_eq=btns.T,
+#             b_eq=tgt,
+#             bounds=(0, None),
+#             method='highs',
+#             integrality=np.ones(len(buttons), dtype=np.int8)
+#         ).fun
+#         tot += res
+#     return tot
 
-N_RUNS = 1
-total = 0
-res = None
-for _ in range(N_RUNS):
-    start = perf_counter_ns()
-    res = solve_2(data)
-    end = perf_counter_ns()
-    total += end - start
-print(f"Solution 2 took {total/N_RUNS/1_000_000} ms, result {res}")
+# N_RUNS = 1
+# total = 0
+# res = None
+# for _ in range(N_RUNS):
+#     start = perf_counter_ns()
+#     res = solve_2(data)
+#     end = perf_counter_ns()
+#     total += end - start
+# print(f"Solution 2 took {total/N_RUNS/1_000_000} ms, result {res}")
