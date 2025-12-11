@@ -3,9 +3,12 @@ name = "aoc-2025-python"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = [
+    "aoc-plumber>=0.3.0",
+    "matplotlib>=3.10.7",
     "numpy>=2.3.5",
     "scipy>=1.16.3",
+    "shapely>=2.1.2",
     "tqdm>=4.67.1",
 ]
