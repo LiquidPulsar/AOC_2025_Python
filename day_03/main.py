@@ -2,21 +2,19 @@ from pathlib import Path
 
 HOME = Path(__file__).parent
 
-twelve = tuple(range(12))
+twelve = tuple(range(100 - 12, 100)) # locks us into 100 digits but ah well
 def best_combo(line: list[int]) -> int:
-    ll = len(line) # will be 100, but I like keeping the flexibility
-    lim = ll - 12
-
     stack = 0
     start = 0
     c = 9
-    for _ in twelve:
+    for lim in twelve:
         # The limit has increased by 1 each time
         # This means that it is sometimes possible to find a higher digit later on
         # But this digit must be found in the 1 new position that has opened up
+        lim_1 = lim + 1
         while c >= 0:
             try:
-                start = line.index(c, start, lim + 1) + 1
+                start = line.index(c, start, lim_1) + 1
                 break
             except:
                 c -= 1
@@ -25,14 +23,13 @@ def best_combo(line: list[int]) -> int:
                 stack = stack * 10 + i
             return stack
         stack = stack * 10 + c
-        lim += 1
     return stack
 
 data = [list(map(int,line.strip())) for line in (HOME/"input.txt").open()]
 
 from time import perf_counter_ns
 
-N_RUNS = 4000
+N_RUNS = 10_000
 total = 0
 res = None
 for _ in range(N_RUNS):
