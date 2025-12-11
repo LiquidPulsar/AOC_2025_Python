@@ -1,0 +1,3 @@
+pattern = "day_{day:02d}"
+files = ["main.py"]
+year=2025
